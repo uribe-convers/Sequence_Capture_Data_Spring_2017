@@ -1,5 +1,4 @@
-#Installing and running HybPiper to process sequence capture data  
-
+# Installing and running HybPiper to process sequence capture data  
 _Simon Uribe-Convers – April 05th, 2017 – www.simonuribe.com_
 ---
 
@@ -12,7 +11,7 @@ I recently used the pipeline with the latest data I received from 152 samples of
 Here is my experience with HybPiper ran in a parallel computing cluster. You might need to modify some commands and **definitively** paths to files and/or scripts!
 
 
-##Cleaning your data
+## Cleaning your data
 Before running HybPiper, make sure your data are demultiplexed and clean of barcodes and adaptors. You can check if the data are clean with [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/).
 
 `fastqc file`  
@@ -70,7 +69,7 @@ cat *.txt >> All_Reports.txt
 java -jar path-to-program/trimmomatic-0.36.jar PE -phred33 Forward_reads Reverse_reads output_forward_paired.fq.gz output_forward_unpaired.fq.gz output_reverse_paired.fq.gz output_reverse_unpaired.fq.gz ILLUMINACLIP:path-to-adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:10:20 MINLEN:40 [other options]
 ```
 
-###For many files in a directory
+### For many files in a directory
 
 
 ```{bash}
@@ -83,7 +82,7 @@ done
 
 I went with **SeqyClean** because it produces only three files, PE1, PE2, and SE, which are accepted in HybPiper
 
-##Renaming the reads
+## Renaming the reads
 My raw reads had some very long and uninformative names. I chose to rename the files to match the sample name (species) and some text informing me that they have been cleaned and if it's the forward (PE1), reverse (PE2) or single (SE) read.
 
 We made a "sample sheet" that we sent to RapidGenomics with the names of each sample and they appended the corresponding filename for each sample. The spreadsheet looked like this:
@@ -116,7 +115,7 @@ mv filename2 species2_SE.fastq
 ```
 Most of this was done with search and replace in TextWrangler.
 
-##Running HybPiper
+## Running HybPiper
 
 HybPiper requires a few programs to run. The easiest way to get everything installed, at least for Macs, is with [Homebrew](https://brew.sh).
 
@@ -158,7 +157,7 @@ python path_to_HybPiper-master/reads_first.py --check
 ```
 
 
-##Additional suggested installs
+## Additional suggested installs
 
 There are two programs that I cannot live without while working with DNA sequences. Both of them deal with format conversion (e.g., fasta to nexus) or concatenation very smoothly. These programs are:
 
@@ -167,8 +166,8 @@ Download and install [Phyutility] (https://code.google.com/archive/p/phyutility/
 Download and install [NCLconverter](http://ncl.sourceforge.net) for further file format conversion.
 
 
-##Get your data ready for HybPiper
-###The Target File
+## Get your data ready for HybPiper
+### The Target File
 You need a "Target File" containing the genes used to designed the capture probes. If there are multiple exons per gene, the exons need to be concatenated.  
 Our genes come from three different analyses and have different names. The first thing I did was to standardize the names within each probe analysis. For example, a gene containing multiple exons called "Hydra\_AT1G07970\_exon1, Hydra\_AT1G07970\_exon2, Hydra\_AT1G07970\_exon3" was renamed to just "Hydra\_AT1G07970". This way I was able to concatenate the multiple exons easier. Because my sequences for the genes were all in a single fasta file, I renamed them in [TextWrangler](http://www.barebones.com/products/textwrangler/) using search and replace. Also, make sure that there are no empty lines between the multiples genes.
 For my example:
@@ -250,7 +249,7 @@ combined = Nexus.combine(nexi)
 combined.write_nexus_data(filename=open('All_Sequences_Concatenated.nex', 'w'))
 ```
 
-###After you have a single (or multiple) Nexus file with all the exons concatenated
+### After you have a single (or multiple) Nexus file with all the exons concatenated
 
 These two methods create a matrix as a NEXUS files (~1.1Gb!) where every sequence has the same length and, thus, adds a dash "-" to sites/regions that are missing (i.e., it treats those as missing data in a phylogenetic analysis). The file has to be striped of those dashes and modified to only have the fasta information. First, convert the NEXUS file to a fasta file using [NCLconverter](http://ncl.sourceforge.net), you can skip this step if you exported directly to fasta from Geneious. The code below will also compress the nexus file (from 1Gb to 1Mb) and **_delete_** the original file. **Don't leave huge files laying around in your computer, they eat up disk space quickly!**
 
@@ -277,11 +276,11 @@ awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}'
 
 OK, we are done. Now rename your concatenated, processed fasta file to `Targets_Final.fasta`. This file now contains all of your genes with the exons concatenated in a single sequences. This is the file that you'll use as the "Target File" (`targets.fasta` in the tutorial) in HypPiper. The last step to finish this file is to be sure that it matches the format that HybPiper requires, which is: `>SpeciesName-GeneName`. It shouldn't have any spaces and, apparently, not underscores. This works `>Text-GeneSomeNumber` but this doesn't `>Text_Second_Text_Numbers`. Do this with a few search and replace steps in TextWrangler or other text editor.
 
-###Name List
+### Name List
 
 In order to run HybPiper on many samples with a single command, it is necessary to have a file with the names of every sample (one per line). This was easy because this information is already in the Sample Sheet file we sent to RapidGenomics. Simply copy the column with the sample names (just one per sample) and paste it in a text file. Called the file `Name_List.txt`. In my case, because I have three clean read files per sample, the names of the sample include a `_Cleaned_` at the end. This allows me to call either the paired or the unpaired reads with the correct command in HybPiper (more on this later).
 
-##Running HybPiper
+## Running HybPiper
 
 The [tutorial](https://github.com/mossmatters/HybPiper/wiki/Tutorial) is very thorough and all the details can be found there. The only thing worth mentioning is that if you are using three files for your reads (PE1, PE2, and SE [single reads without a sister]), you have to use the option `--unpaired File_with_SE`
 
@@ -292,7 +291,7 @@ So the command for running HybPiper would look something like this:
 ```
 (--cpu N limits the number of processors, the default is all).
 
-###Running multiple samples with one command
+### Running multiple samples with one command
 
 To run multiple samples with a single command, you'll need the `Name_List.txt` and the following command:
 
@@ -304,7 +303,7 @@ done < Name_List.txt
 
 The code above reads the first line of the `Name_List.txt` and uses it to start the run for that sample, each line is read and store in the variable `name`. That's why it was important for me to add the `_Cleaned_` to the names so that the variable `name` becomes `Species_1_Cleaned_` and I could add either P for paired reads or S for unpaired reads. The only problem/limitation with this code is that it runs sequentially and not in parallel.
 
-###To run multiple samples in parallel in a cluster using SLURM
+### To run multiple samples in parallel in a cluster using SLURM
 This code will run an array of 152 jobs in the cluster. The indices of the array are used to read one line of the Name_List.txt at a time and submit a job for that sample/line. It will submit jobs in batches of 30 using 8 processors for each job. Invaluable information to read the names of the files with the indices came from [here](https://research.csc.fi/taito-array-jobs).  
 
 **IMPORTANT**  
@@ -349,7 +348,7 @@ name=$(sed -n "$SLURM_ARRAY_TASK_ID"p Name_List.txt)
 reads_first.py -b Targets_Final.fasta -r $name"P*.fastq" --prefix $name --bwa --unpaired $name"S*.fastq" --cpu 8
 ```
 
-###Get the length of your sequences with this code in the cluster
+### Get the length of your sequences with this code in the cluster
 
 ```
 #!/bin/bash
@@ -381,7 +380,7 @@ module load python
 python /opt/modules/biology/hybpiper/1.2/bin/get_seq_lengths.py Targets_Final.fasta Name_List.txt dna > Seq_Length.txt
 ```
 
-###Compute statistics about your experiment
+### Compute statistics about your experiment
 ```
 #!/bin/bash
 
@@ -412,7 +411,7 @@ module load python
 python /opt/modules/biology/hybpiper/1.2/bin/hybpiper_stats.py Seq_Length.txt Name_List_Taxa_without_Genes_Deleted.txt > Stats.txt
 ```
 
-###Teasing *introns* and *exons* apart and getting their sequences
+### Teasing *introns* and *exons* apart and getting their sequences
 
 ```
 #!/bin/bash
@@ -455,7 +454,7 @@ done < Name_List.txt
 
 ```
 
-###Retrieve all the genes that you recovered, either nucleotides (`dna`), proteins (`aa`), introns and exons (`supercontig`), or just introns (`intron`)
+### Retrieve all the genes that you recovered, either nucleotides (`dna`), proteins (`aa`), introns and exons (`supercontig`), or just introns (`intron`)
 ```
 #!/bin/bash
 
@@ -499,7 +498,7 @@ mv *supercontig* ./Final_Genes/Supercontig
 
 ```
 
-###Analyzing potential paralog loci
+### Analyzing potential paralog loci
 
 Matt has a really good explanation on what you can expect and do with the possible paralog gene. Go read it [here](https://github.com/mossmatters/HybPiper/wiki/Paralogs)
 
@@ -539,7 +538,7 @@ parallel "python /opt/modules/biology/hybpiper/1.2/bin/paralog_retriever.py Name
 mv *paralogs* Final_Genes/Paralogs
 ```
 
-###Separate by Clade
+### Separate by Clade
 
 I'm going to separate the final sequences (the supercontigs in this case) in each fasta file by taxonomic group.
 
@@ -562,7 +561,7 @@ mkdir Burmeistera_and_Outgroups
 for i in *non-interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans_Cleaned_ -e \>LL363_S_krauseanus_Cleaned_ -e \>LL6_C_smithii_Cleaned_ -e \>LL159_S_jelskii_Cleaned_ -e \>LL61_C_asclepideus_Cleaned_ -e \>LL334_S_aureus_Cleaned_ $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
 ```
 
-###Alignment, Clean up, and Phylogenetics
+### Alignment, Clean up, and Phylogenetics
 
 **Before** running this code, read how to "parallelize" the work load below! 
 
@@ -652,7 +651,7 @@ mv RAxML_* Phylo
 
 ```
 
-###Cleaning up
+### Cleaning up
 
 run the code below to delete unnecessary files, mostly the results from SPAdes. This will reduce to size of the directories by 75%.
 
@@ -660,7 +659,7 @@ run the code below to delete unnecessary files, mostly the results from SPAdes. 
 python /opt/modules/biology/hybpiper/1.2/bin/cleanup.py
 ```
 
-###Final Commands and Notes
+### Final Commands and Notes
 
 - **Remember** to compress your reads after you are done!
 
