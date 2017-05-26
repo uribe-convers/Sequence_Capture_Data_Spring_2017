@@ -558,14 +558,14 @@ For Burmeistera, including some outgroup species:
 cd Non-Interleaved
 mkdir Burmeistera_and_Outgroups
 
-for i in *non-interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans_Cleaned_ -e \>LL363_S_krauseanus_Cleaned_ -e \>LL6_C_smithii_Cleaned_ -e \>LL159_S_jelskii_Cleaned_ -e \>LL61_C_asclepideus_Cleaned_ -e \>LL334_S_aureus_Cleaned_ $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
+for i in *non_interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans -e \>LL363_S_krauseanus -e \>LL6_C_smithii -e \>LL159_S_jelskii -e \>LL61_C_asclepideus -e \>LL334_S_aureus -e \>LL49_C_incanus -e \>LL83_C_brittonianus -e \>LL86_C_mandonis -e \>LL88_S_ayersiae $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
 ```
 
 ### Alignment, Clean up, and Phylogenetics
 
 **Before** running this code, read how to "parallelize" the work load below! 
 
-If you don't have access to a clauster with many nodes and cores but have access to a few machines with many core, you can still work on parallel by assigning some work to each computer. 
+If you don't have access to a cluster with many nodes and cores but have access to a few machines with many core, you can still work on parallel by assigning some work to each computer. 
 
 You need to figure out how many files you have, how many "batches" you are going to divide the work in, move the right amount of files into each batch, and run the analyses in each batch. 
 
