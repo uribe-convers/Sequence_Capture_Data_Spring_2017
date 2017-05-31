@@ -559,6 +559,7 @@ cd Non-Interleaved
 mkdir Burmeistera_and_Outgroups
 
 for i in *non_interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans -e \>LL363_S_krauseanus -e \>LL6_C_smithii -e \>LL159_S_jelskii -e \>LL61_C_asclepideus -e \>LL334_S_aureus -e \>LL49_C_incanus -e \>LL83_C_brittonianus -e \>LL86_C_mandonis -e \>LL88_S_ayersiae $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
+
 ```
 
 ### Alignment, Clean up, and Phylogenetics
@@ -639,8 +640,9 @@ for i in *.fasta; do mafft --thread 6 --preservecase $i > $i.aln; done
 #Clean at 0.5 with Phyutility
 for i in *.aln; do phyutility -clean 0.5 -in $i -out $i"_cleaned_05.aln"; done
 
-mkdir Alignments
-mv * .aln Alignments
+mkdir Alignments Fasta
+mv *.fasta Fasta
+mv *.aln Alignments
 
 cd Alignments
 
@@ -648,7 +650,16 @@ module load raxml
 mkdir Phylo
 for i in *cleaned_05.aln; do raxmlHPC-PTHREADS-SSE3 -T 6 -f a -x 789 -p 9876 -m GTRCAT -# 300 -s $i -n $i.tre; done
 mv RAxML_* Phylo
+mv Phylo ../
 
+```
+
+### If you need to standardize names within the trees
+
+Maybe I'll need to make the tips match for species tree analyses or concatenation. The code below will get rid off the appended gene information:
+
+```
+perl -pe 's/__Gene\w+//g' File > file
 ```
 
 ### Cleaning up
