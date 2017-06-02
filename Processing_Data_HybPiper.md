@@ -32,7 +32,7 @@ seqyclean -1 forward_read -2 reverse_read -o basename -qual
 #Directory for clean reads
 mkdir Cleaned_Data_SeqyClean_May_2017
 
-#A for loop to run the program on many reads changing the variable mid loop to include the reverse read. 
+#A for loop to run the program on many reads changing the variable mid loop to include the reverse read.
 for f1 in *_R1.fastq.gz
 do
 # The line below changes R1 for R2. The way it is doing it is by stripping part of the name
@@ -52,7 +52,7 @@ cd Cleaned_Data_SeqyClean_May_2017
 mv *.txt *.tsv ../Reports
 cd ../Reports
 #appends all summary files into one
-cat *.tsv >> All_Stats_temp.tsv 
+cat *.tsv >> All_Stats_temp.tsv
 #removes duplicated headers
 awk '!seen[$0]++' All_Stats_temp.tsv > All_Stats.tsv
 rm *temp*
@@ -161,7 +161,7 @@ python path_to_HybPiper-master/reads_first.py --check
 
 There are two programs that I cannot live without while working with DNA sequences. Both of them deal with format conversion (e.g., fasta to nexus) or concatenation very smoothly. These programs are:
 
-Download and install [Phyutility] (https://code.google.com/archive/p/phyutility/downloads) to do file format conversion.
+Download and install [Phyutility](https://code.google.com/archive/p/phyutility/downloads) to do file format conversion.
 
 Download and install [NCLconverter](http://ncl.sourceforge.net) for further file format conversion.
 
@@ -169,7 +169,7 @@ Download and install [NCLconverter](http://ncl.sourceforge.net) for further file
 ## Get your data ready for HybPiper
 ### The Target File
 You need a "Target File" containing the genes used to designed the capture probes. If there are multiple exons per gene, the exons need to be concatenated.  
-Our genes come from three different analyses and have different names. The first thing I did was to standardize the names within each probe analysis. For example, a gene containing multiple exons called "Hydra\_AT1G07970\_exon1, Hydra\_AT1G07970\_exon2, Hydra\_AT1G07970\_exon3" was renamed to just "Hydra\_AT1G07970". This way I was able to concatenate the multiple exons easier. Because my sequences for the genes were all in a single fasta file, I renamed them in [TextWrangler](http://www.barebones.com/products/textwrangler/) using search and replace. Also, make sure that there are no empty lines between the multiples genes.
+Our genes come from three different analyses and have different names. The first thing I did was to standardize the names within each probe analysis. For example, a gene containing multiple exons called `Hydra\_AT1G07970\_exon1, Hydra\_AT1G07970\_exon2, Hydra\_AT1G07970\_exon3` was renamed to just `Hydra\_AT1G07970`. This way I was able to concatenate the multiple exons easier. Because my sequences for the genes were all in a single fasta file, I renamed them in [TextWrangler](http://www.barebones.com/products/textwrangler/) using search and replace. Also, make sure that there are no empty lines between the multiples genes.
 For my example:
 
 ```
@@ -564,11 +564,11 @@ for i in *non_interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans -e
 
 ### Alignment, Clean up, and Phylogenetics
 
-**Before** running this code, read how to "parallelize" the work load below! 
+**Before** running this code, read how to "parallelize" the work load below!
 
-If you don't have access to a cluster with many nodes and cores but have access to a few machines with many core, you can still work on parallel by assigning some work to each computer. 
+If you don't have access to a cluster with many nodes and cores but have access to a few machines with many core, you can still work on parallel by assigning some work to each computer.
 
-You need to figure out how many files you have, how many "batches" you are going to divide the work in, move the right amount of files into each batch, and run the analyses in each batch. 
+You need to figure out how many files you have, how many "batches" you are going to divide the work in, move the right amount of files into each batch, and run the analyses in each batch.
 
 Using the same code I used during concatenation step if the target genes:
 
@@ -588,7 +588,7 @@ NUMFILESDIR_NO_FLOAT=$(($NUMFILES / $DIRECTORIES))
 #Informs how many files need to go to each directory
 echo "<< The number of files per directory is ***$NUMFILESDIR*** >>"
 
-eval mkdir {01..$DIRECTORIES} 
+eval mkdir {01..$DIRECTORIES}
 
 #Move the corresponding number of files into each directory
 
@@ -618,15 +618,16 @@ for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./20
 
 ```
 
-The code below is used **in each** directory/batch of files! Copy paste it in a file (`Align_Clean_Phylo.sh`) and make it into a script for easy use. Then copy it into each directory:
+Within the directory with the cleaned fasta files, either execute the code below or, even better, copy paste it into a file and run it as a script. I called my script `Align_Clean_Phylo.sh`, and I copied the script into **in each** directory/batch of files with the code below:
 
 ```
 echo 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 | xargs -n 1 cp Align_Clean_Phylo.sh
 
 ```
 
-Within the directory with the cleaned fasta files, either execute the code below or run the script with the same code (`./Align_Clean_Phylo.sh`)
+The run the script with `./Align_Clean_Phylo.sh`
 
+#### Code for phylogenetics
 ```
 module load mafft
 module load phyutility
