@@ -552,13 +552,32 @@ mv *non-interleaved.fasta Non-Interleaved/
 
 ```
 
-For Burmeistera, including some outgroup species:
+For the *Burmeistera* species that have good names and enough loci, plus some outgroups:
+
+```
+for i in *.aln; do grep -A 1 -e \>Burmeistera_almedae_2016_001_Combined -e \>Burmeistera_anderssonii_2016_113_Combined -e \>Burmeistera_aspera_2016_089_Combined -e \>Burmeistera_auriculata_2016_199_Combined -e \>Burmeistera_borjensis_2016_219_Combined -e \>Burmeistera_brachyandra_2016_114_Combined -e \>Burmeistera_brighamioides_2016_121_Combined -e \>Burmeistera_bullatifolia_2016_129_Combined -e \>Burmeistera_ceratocarpa_2016_233_150bp -e \>Burmeistera_cf_aeribacca_2016_087_Combined -e \>Burmeistera_chiriquiensis_2016_161_Combined -e \>Burmeistera_crassifolia_2016_200_Combined -e \>Burmeistera_crispiloba_2016_201_Combined -e \>Burmeistera_cyclostigmata_2016_104_Combined -e \>Burmeistera_cylindrocarpa_2016_235_Combined -e \>Burmeistera_darienensis_2016_149_Combined -e \>Burmeistera_domingensis_2016_192_Combined -e \>Burmeistera_draconis_2016_133_Combined -e \>Burmeistera_dukei_2016_153_Combined -e \>Burmeistera_fuscoapicata_2016_128_Combined -e \>Burmeistera_glabrata_2016_227_Combined -e \>Burmeistera_holm-nielsenii_2016_210_Combined -e \>Burmeistera_huacamayensis_2016_115_Combined -e \>Burmeistera_litensis_2016_214_Combined -e \>Burmeistera_loejtnantii_2016_006_Combined -e \>Burmeistera_lutosa_2016_209_Combined -e \>Burmeistera_mcvaughii_2016_155_Combined -e \>Burmeistera_multiflora_2016_196_Combined -e \>Burmeistera_obtusifolia_2016_108_Combined -e \>Burmeistera_oyacachensis_2016_230_Combined -e \>Burmeistera_panamensis_2016_151_Combined -e \>Burmeistera_parviflora_LL_20_Combined -e \>Burmeistera_pirrensis_2016_148_Combined -e \>Burmeistera_quercifolia_2016_009_Combined -e \>Burmeistera_ramosa_2016_007_Combined -e \>Burmeistera_refracta_2016_195_Combined -e \>Burmeistera_resupinata_2016_240_Combined -e \>Burmeistera_resupinata_var_heilbornii_2016_116_Combined -e \>Burmeistera_rubrosepala_2016_239_Combined -e \>Burmeistera_smaragdi_2016_236_Combined -e \>Burmeistera_smooth_2016_135_Combined -e \>Burmeistera_sodiroana_2016_197_Combined -e \>Burmeistera_succulenta_2016_143_Combined -e \>Burmeistera_succulenta_2016_188_Combined -e \>Burmeistera_tenuiflora_2016_158_Combined -e \>Burmeistera_truncata_2016_144_Combined -e \>Burmeistera_utleyi_2016_156_Combined -e \>Burmeistera_vulgaris_2016_100_Combined -e \>Burmeistera_xerampelina_2016_086_Combined -e \>Burmeistera_zurquiensis_2016_098_Combined -e \>LL6_C_smithii_Combined -e \>LL49_C_incanus_Combined -e \>LL61_C_asclepideus_Combined -e \>LL69_C_nigricans_Combined -e \>LL83_C_brittonianus_Combined -e \>LL86_C_mandonis_Combined -e \>LL88_S_ayersiae_Combined -e \>LL159_S_jelskii_Combined -e \>LL334_S_aureus_Combined -e \>LL363_S_krauseanus_Combined  $i > Species_with_Good_Data/$i"_Good_Data.aln"; done
+
+#Clean the two dashes in extra lines
+
+cd Species_with_Good_Data
+for i in *.aln; do sed -i "" 's/^--$//g' $i; done
+
+
+```
+
+
+For **all** *Burmeistera*, including some outgroup species:
 
 ```
 cd Non-Interleaved
 mkdir Burmeistera_and_Outgroups
 
 for i in *non_interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans -e \>LL363_S_krauseanus -e \>LL6_C_smithii -e \>LL159_S_jelskii -e \>LL61_C_asclepideus -e \>LL334_S_aureus -e \>LL49_C_incanus -e \>LL83_C_brittonianus -e \>LL86_C_mandonis -e \>LL88_S_ayersiae $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
+
+#Clean the two dashes in extra lines
+
+cd Burmeistera_and_Outgroups
+for i in *.fasta; do sed -i "" 's/^--$//g' $i; done
 
 ```
 
@@ -577,7 +596,7 @@ Using the same code I used during concatenation step if the target genes:
 find . -size 0 -delete
 
 #How many batches (directories) do you want to work with?
-DIRECTORIES=20
+DIRECTORIES=30
 
 #Counts number of files in a directory and stores it in a variable
 NUMFILES=$(ls | wc -l)
@@ -590,7 +609,7 @@ echo "<< The number of files per directory is ***$NUMFILESDIR*** >>"
 
 eval mkdir {01..$DIRECTORIES}
 
-#Move the corresponding number of files into each directory
+#Move the corresponding number of files into each directory (number of lines must match $DIRECTORIES)
 
 for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./01; done
 for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./02; done
@@ -612,16 +631,26 @@ for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./17
 for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./18; done
 for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./19; done
 for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./20; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./21; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./22; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./23; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./24; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./25; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./26; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./27; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./28; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./29; done
+for file in $(ls -p | grep -v / | tail -$NUMFILESDIR_NO_FLOAT); do mv $file ./30; done
 
 ## Check that you moved all the files!!!!!
-## If not, move the remainder manually to directory 01
+## If not, move the remainder manually to the last (largest number) directory.
 
 ```
 
 Within the directory with the cleaned fasta files, either execute the code below or, even better, copy paste it into a file and run it as a script. I called my script `Align_Clean_Phylo.sh`, and I copied the script into **in each** directory/batch of files with the code below:
 
 ```
-echo 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 | xargs -n 1 cp Align_Clean_Phylo.sh
+echo 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 | xargs -n 1 cp Align_Clean_Phylo.sh
 
 ```
 
@@ -629,29 +658,47 @@ The run the script with `./Align_Clean_Phylo.sh`
 
 #### Code for phylogenetics
 ```
+#!/bin/bash
+
+# Load modules if running on a cluster
 module load mafft
 module load phyutility
+module load fasttree
 
-#Delete any empty files
+# Delete any empty files
 find . -size 0 -delete
 
-#Align with Mafft
-for i in *.fasta; do mafft --thread 6 --preservecase $i > $i.aln; done
+# Create directroies
 
-#Clean at 0.5 with Phyutility
-for i in *.aln; do phyutility -clean 0.5 -in $i -out $i"_cleaned_05.aln"; done
+mkdir Alignments Fasta Phylo
 
-mkdir Alignments Fasta
-mv *.fasta Fasta
-mv *.aln Alignments
+# Align with Mafft, clean with Phyutility, and analyze with FastTree
 
-cd Alignments
+for i in *.fasta
+do
+# Align
+echo ""
+echo "~~~Aligning with Mafft~~~"
+echo ""
+time mafft --auto --thread 6 --preservecase $i > $i.aln
 
-module load raxml
-mkdir Phylo
-for i in *cleaned_05.aln; do raxmlHPC-PTHREADS-SSE3 -T 6 -f a -x 789 -p 9876 -m GTRCAT -# 300 -s $i -n $i.tre; done
-mv RAxML_* Phylo
-mv Phylo ../
+# Cleaninig Alignment
+echo ""
+echo "~~~Cleaninig alignment with Phyutility at 0.5~~~"
+echo ""
+time phyutility -clean 0.5 -in $i".aln" -out $i"_cleaned_05.aln"
+
+# Phylogenetics
+echo ""
+echo "~~~Building phylogeny with FastTre~~~"
+echo ""
+time FastTree -nt -gtr < $i"_cleaned_05.aln" > $i".tre"
+
+# House keeping
+mv $i".aln" $i"_cleaned_05.aln" Alignments
+mv $i".tre" Phylo
+mv $i Fasta
+done
 
 ```
 
@@ -660,8 +707,53 @@ mv Phylo ../
 Maybe I'll need to make the tips match for species tree analyses or concatenation. The code below will get rid off the appended gene information:
 
 ```
-perl -pe 's/__Gene\w+//g' File > file
+perl -pe 's/_Gene\w+//g' InFile > OutFile
 ```
+
+## Species Tree Inference
+
+After all the gene trees are built, it's time to make a species tree under the multispecies coalescent. I'm going to use [ASTRAL II](https://github.com/smirarab/ASTRAL) and [SVDquartets](http://www.stat.osu.edu/~lkubatko/software/SVDquartets/) for this purpose.
+
+### ASTRAL II  
+
+Starting in a directory with all the gene trees (the best tree from RAxML for example), make a file with all the gene trees in it:
+
+```
+cat genetree* > All_gene_trees.tre
+```
+
+Make sure that the names of the species in each gene tree are the **same!!** Otherwise the species tree program won't be able to know they are the same. This can be skipped if you standardized the names with the perl step above.
+
+For example, "species1_gene1" for gene tree 1 needs to be changed to "species1". This is easily done in a text editor.
+
+Now that they all match, run ASTRAL II
+
+```
+java -jar /Applications/ASTRAL-master/Astral/astral.4.11.1.jar -i All_gene_trees.tre -o Species_tree_Astral.tre
+
+```
+
+### SVDquartets
+
+Start with a file with all loci concatenated into a NEXUS file. Get the latest command-line version of [Paup](https://people.sc.fsu.edu/~dswofford/paup_test/) and type the following:
+
+```
+paup
+
+#Within Paup
+
+exe file.nex
+
+#No Bootstrap
+SVDQuartets nthreads=25 nquartets=10000000
+SaveTrees file = Burmeistera_SVDquartet.tre
+
+#With Bootstrap
+SVDQuartets nthreads=25 nquartets=10000000 bootstrap=standard nreps=50 treeFile=SVD_Bootstrap_Cleaned_Data_Mare.tre
+
+
+```
+
 
 ### Cleaning up
 
