@@ -280,6 +280,35 @@ OK, we are done. Now rename your concatenated, processed fasta file to `Targets_
 
 In order to run HybPiper on many samples with a single command, it is necessary to have a file with the names of every sample (one per line). This was easy because this information is already in the Sample Sheet file we sent to RapidGenomics. Simply copy the column with the sample names (just one per sample) and paste it in a text file. Called the file `Name_List.txt`. In my case, because I have three clean read files per sample, the names of the sample include a `_Cleaned_` at the end. This allows me to call either the paired or the unpaired reads with the correct command in HybPiper (more on this later).
 
+## Combine the 100bp and the 150bp cleaned reads
+I created a file with the names of all the 100bp and 150bp files. To do this I did the following within the directory with the cleaned reads: `ls > 100bp_names.txt`. The same with the 150bp and then copied paste both lists into BBEdit and added some commands and modified the text with regular expression. A few lines of the file look like this:
+
+```
+#!/bin/bash
+cat 37_C_erythraeus_Cleaned_PE1.fastq 37_C_erythraeus_R1.fastq.gz_Cleaned_PE1.fastq > 37_C_erythraeus_Combined_Cleaned_PE1.fastq
+cat 37_C_erythraeus_Cleaned_PE2.fastq 37_C_erythraeus_R1.fastq.gz_Cleaned_PE2.fastq > 37_C_erythraeus_Combined_Cleaned_PE2.fastq
+cat 37_C_erythraeus_Cleaned_SE.fastq 37_C_erythraeus_R1.fastq.gz_Cleaned_SE.fastq > 37_C_erythraeus_Combined_Cleaned_SE.fastq
+cat 99_S_brevicalyx_Cleaned_PE1.fastq 99_S_brevicalyx_R1.fastq.gz_Cleaned_PE1.fastq > 99_S_brevicalyx_Combined_Cleaned_PE1.fastq
+cat 99_S_brevicalyx_Cleaned_PE2.fastq 99_S_brevicalyx_R1.fastq.gz_Cleaned_PE2.fastq > 99_S_brevicalyx_Combined_Cleaned_PE2.fastq
+cat 99_S_brevicalyx_Cleaned_SE.fastq 99_S_brevicalyx_R1.fastq.gz_Cleaned_SE.fastq > 99_S_brevicalyx_Combined_Cleaned_SE.fastq
+cat 122_S_lycioides_Cleaned_PE1.fastq 122_S_lycioides_R1.fastq.gz_Cleaned_PE1.fastq > 122_S_lycioides_Combined_Cleaned_PE1.fastq
+
+```
+
+Now, in a directory with both the 100bp and 150bp reads and the file with the concatenation instructions:
+
+```
+mkdir Combined_Data 100bp
+./Combining_Reads.sh
+
+mv *Combined_Cleaned*.fastq ./Combined_Data
+mv *R1.fastq.gz_Cleaned* ./150bp/Cleaned_Data_SeqyClean_May_2017/
+mv *_Cleaned_* ./100bp
+
+```
+
+
+
 ## Running HybPiper
 
 The [tutorial](https://github.com/mossmatters/HybPiper/wiki/Tutorial) is very thorough and all the details can be found there. The only thing worth mentioning is that if you are using three files for your reads (PE1, PE2, and SE [single reads without a sister]), you have to use the option `--unpaired File_with_SE`
@@ -660,20 +689,32 @@ The run the script with `./Align_Clean_Phylo.sh`
 ```
 #!/bin/bash
 
+# This script will align, clean, and analyze multiple fasta files in a single
+# directory. It assumes that you have Mafft, Phyutility, and FastTree installed
+# and in your path. The first part of the script is meant to be used in a cluster
+# where modules have to be loaded, so delete it or comment it out if you are working
+# on a single machine. The fasta files, alignments, and trees will be placed in 
+# separate directories.
+
+# Simon Uribe-Convers - http://simonuribe.com - June 15th, 2017
+
 # Load modules if running on a cluster
+
 module load mafft
 module load phyutility
 module load fasttree
 
 # Delete any empty files
+
 find . -size 0 -delete
 
-# Create directroies
+# Create directories
 
 mkdir Alignments Fasta Phylo
 
-# Align with Mafft, clean with Phyutility, and analyze with FastTree
+## Align with Mafft, clean with Phyutility, and analyze with FastTree
 
+# Alignment
 for i in *.fasta
 do
 # Align
@@ -682,9 +723,9 @@ echo "~~~Aligning with Mafft~~~"
 echo ""
 time mafft --auto --thread 6 --preservecase $i > $i.aln
 
-# Cleaninig Alignment
+# Cleaninig Alignment at 50% occupancy per site
 echo ""
-echo "~~~Cleaninig alignment with Phyutility at 0.5~~~"
+echo "~~~Cleaninig alignment with Phyutility at at 50% occupancy per site~~~"
 echo ""
 time phyutility -clean 0.5 -in $i".aln" -out $i"_cleaned_05.aln"
 
@@ -735,21 +776,80 @@ java -jar /Applications/ASTRAL-master/Astral/astral.4.11.1.jar -i All_gene_trees
 
 ### SVDquartets
 
-Start with a file with all loci concatenated into a NEXUS file. Get the latest command-line version of [Paup](https://people.sc.fsu.edu/~dswofford/paup_test/) and type the following:
+Start with a file with all loci (NSPs) concatenated into a NEXUS file, you will use this in Paup.
+
+SVDquartets allows for multiple individuals from the same species to be included in the analysis, and those individual, and their information, will be combined into the taxon they belong to. For this to work however, you need to include a taxon block on your NEXUS file specifying which samples belong to which species. It should start with the species name, followed by a colon, the lines the individuals are located (or the range of lines) and a comma. Here is an example:
+
+```
+begin sets;
+taxpartition species =
+sp1: 1-4,
+sp2: 5,
+sp3: 6-7,
+;
+END;
+
+``` 
+This is easy to do for a few samples but if you have hundreds of individuals it becomes tedious very quickly. To make it a bit easier, use the R code below. **Note:** this code works on a *Phylip* file and not a *NEXUS*, so convert the NEXUS to Phylip using NCLconverter: `NCLconverter infile.nex -erelaxedphylip -ofileout`.
+
+
+```{R}
+### This script will format the settings file for SVDquartets
+### It will parse a phylip file and output the line number in which each taxon is located. Then it will write how many
+### occurrences a specific species has and the lines of each.
+### This works best with species names separated by an underscore, and it will assume that there are no subspecies,
+### i.e., only the fisrt two parts of the name will be used.
+### by Matthew Pennell, July 23 2014 - http://mwpennell.github.io/
+
+## Read in and parse phylip file
+phy.tab <- read.table(phylip.filename)
+phy.tab <- as.character(phy.tab[-1,1])
+
+## specific to my naming scheme using underscores
+get.species.name <- function(x){
+  tmp <- strsplit(x, split="_")
+  paste(tmp[[1]][1], tmp[[1]][2], sep="_")
+}
+
+## Get species names 
+sp.names <- as.character(sapply(phy.tab, function(x) get.species.name(x)))
+
+## get identity of matches
+sp.lab <- lapply(unique(sp.names), function(i) which(sp.names == i))
+names(sp.lab) <- unique(sp.names)
+
+## output to input file
+sink("SVDquartets_settings.txt")
+for (i in 1:length(sp.lab)){
+	cat(paste(names(sp.lab)[i], length(sp.lab[[i]]), sep=" : "))
+	cat("\n")
+	cat("\t")
+	cat(as.numeric(sp.lab[[i]]))
+	cat("\n")
+
+}
+sink()
+```
+One you have the location of every sample from the code above, modified the text slightly to match the correct format, i.e., put every occurrence in one line, add commas, etc. Finally, copy paste your sample-to-species information at the end of your concatenated NEXUS file—don;t forget to include the few lines that the code above doesn't generate, see the format example above!
+
+Now that we have the file ready, get the latest command-line version of [Paup](https://people.sc.fsu.edu/~dswofford/paup_test/) and type the following:
+
 
 ```
 paup
 
 #Within Paup
 
-exe file.nex
+exe All_Loci_Concatenated_Good_Data_SVDquartets.nex
 
 #No Bootstrap
-SVDQuartets nthreads=25 nquartets=10000000
-SaveTrees file = Burmeistera_SVDquartet.tre
+SVDQuartets nthreads=25 nquartets=10000000 partition=species speciesTree=yes
+
+#Save the tree
+SaveTrees file = Burmeistera_SVDquartet.tre format = Newick brLens = yes supportValues = Both trees = all
 
 #With Bootstrap
-SVDQuartets nthreads=25 nquartets=10000000 bootstrap=standard nreps=50 treeFile=SVD_Bootstrap_Cleaned_Data_Mare.tre
+SVDQuartets nthreads=25 nquartets=10000000 partition=species bootstrap=standard speciesTree=yes nreps=50 treeFile= Burmeistera_SVDquartet_Bootstrap3_Good_Data.trees
 
 
 ```
