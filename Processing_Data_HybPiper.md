@@ -571,19 +571,23 @@ mv *paralogs* Final_Genes/Paralogs
 
 I'm going to separate the final sequences (the supercontigs in this case) in each fasta file by taxonomic group.
 
-Start with the **non-interleaved** fasta files that HybPiper created:
+Start with the **non-interleaved** fasta files that HybPiper created—if they are **interleaved**, you can type the following command to make them non-interleaved::
 
 ```{bash}
 cd Supercontig
 mkdir Non-Interleaved
 for i in *fasta; do awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < $i > $i"_non_interleaved.fasta"; done
 mv *non-interleaved.fasta Non-Interleaved/
+cd Non-Interleaved
 
 ```
+Here are examples for specific species, writing every taxon name in the command line which could be tedious to do. Keep reading for a _general_ way of doing this with a file with names instead.
 
 For the *Burmeistera* species that have good names and enough loci, plus some outgroups:
 
 ```
+mkdir Species_with_Good_Data
+
 for i in *.aln; do grep -A 1 -e \>Burmeistera_almedae_2016_001_Combined -e \>Burmeistera_anderssonii_2016_113_Combined -e \>Burmeistera_aspera_2016_089_Combined -e \>Burmeistera_auriculata_2016_199_Combined -e \>Burmeistera_borjensis_2016_219_Combined -e \>Burmeistera_brachyandra_2016_114_Combined -e \>Burmeistera_brighamioides_2016_121_Combined -e \>Burmeistera_bullatifolia_2016_129_Combined -e \>Burmeistera_ceratocarpa_2016_233_150bp -e \>Burmeistera_cf_aeribacca_2016_087_Combined -e \>Burmeistera_chiriquiensis_2016_161_Combined -e \>Burmeistera_crassifolia_2016_200_Combined -e \>Burmeistera_crispiloba_2016_201_Combined -e \>Burmeistera_cyclostigmata_2016_104_Combined -e \>Burmeistera_cylindrocarpa_2016_235_Combined -e \>Burmeistera_darienensis_2016_149_Combined -e \>Burmeistera_domingensis_2016_192_Combined -e \>Burmeistera_draconis_2016_133_Combined -e \>Burmeistera_dukei_2016_153_Combined -e \>Burmeistera_fuscoapicata_2016_128_Combined -e \>Burmeistera_glabrata_2016_227_Combined -e \>Burmeistera_holm-nielsenii_2016_210_Combined -e \>Burmeistera_huacamayensis_2016_115_Combined -e \>Burmeistera_litensis_2016_214_Combined -e \>Burmeistera_loejtnantii_2016_006_Combined -e \>Burmeistera_lutosa_2016_209_Combined -e \>Burmeistera_mcvaughii_2016_155_Combined -e \>Burmeistera_multiflora_2016_196_Combined -e \>Burmeistera_obtusifolia_2016_108_Combined -e \>Burmeistera_oyacachensis_2016_230_Combined -e \>Burmeistera_panamensis_2016_151_Combined -e \>Burmeistera_parviflora_LL_20_Combined -e \>Burmeistera_pirrensis_2016_148_Combined -e \>Burmeistera_quercifolia_2016_009_Combined -e \>Burmeistera_ramosa_2016_007_Combined -e \>Burmeistera_refracta_2016_195_Combined -e \>Burmeistera_resupinata_2016_240_Combined -e \>Burmeistera_resupinata_var_heilbornii_2016_116_Combined -e \>Burmeistera_rubrosepala_2016_239_Combined -e \>Burmeistera_smaragdi_2016_236_Combined -e \>Burmeistera_smooth_2016_135_Combined -e \>Burmeistera_sodiroana_2016_197_Combined -e \>Burmeistera_succulenta_2016_143_Combined -e \>Burmeistera_succulenta_2016_188_Combined -e \>Burmeistera_tenuiflora_2016_158_Combined -e \>Burmeistera_truncata_2016_144_Combined -e \>Burmeistera_utleyi_2016_156_Combined -e \>Burmeistera_vulgaris_2016_100_Combined -e \>Burmeistera_xerampelina_2016_086_Combined -e \>Burmeistera_zurquiensis_2016_098_Combined -e \>LL6_C_smithii_Combined -e \>LL49_C_incanus_Combined -e \>LL61_C_asclepideus_Combined -e \>LL69_C_nigricans_Combined -e \>LL83_C_brittonianus_Combined -e \>LL86_C_mandonis_Combined -e \>LL88_S_ayersiae_Combined -e \>LL159_S_jelskii_Combined -e \>LL334_S_aureus_Combined -e \>LL363_S_krauseanus_Combined  $i > Species_with_Good_Data/$i"_Good_Data.aln"; done
 
 #Clean the two dashes in extra lines
@@ -598,7 +602,7 @@ for i in *.aln; do sed -i "" 's/^--$//g' $i; done
 For **all** *Burmeistera*, including some outgroup species:
 
 ```
-cd Non-Interleaved
+
 mkdir Burmeistera_and_Outgroups
 
 for i in *non_interleaved.fasta; do grep -A 1 -e \>Burm -e \>LL69_C_nigricans -e \>LL363_S_krauseanus -e \>LL6_C_smithii -e \>LL159_S_jelskii -e \>LL61_C_asclepideus -e \>LL334_S_aureus -e \>LL49_C_incanus -e \>LL83_C_brittonianus -e \>LL86_C_mandonis -e \>LL88_S_ayersiae $i > Burmeistera_and_Outgroups/$i"_Burmeistera_and_Outgroups.fasta"; done
@@ -609,6 +613,20 @@ cd Burmeistera_and_Outgroups
 for i in *.fasta; do sed -i "" 's/^--$//g' $i; done
 
 ```
+
+To do this kind of sample subsetting without typing every species name on the command line but by using a text file with one species names per line (**and an empty line at the end of the file**):
+
+```
+mkdir Species_Subset
+for i in *.aln
+	do
+	while read name
+		do grep -A 1 $name $i >> Species_Subset/$i"_Species_Subset.aln"
+	done < names.txt
+done
+
+```
+
 
 ### Alignment, Clean up, and Phylogenetics
 
