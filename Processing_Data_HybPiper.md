@@ -800,12 +800,28 @@ SVDquartets allows for multiple individuals from the same species to be included
 
 ```
 begin sets;
-taxpartition species =
-sp1: 1-4,
-sp2: 5,
-sp3: 6-7,
-;
-END;
+	taxpartition species =
+		FID0_FID0 : 1-511,
+		FID1_FID1 : 512-1071,
+		FID2_FID2 : 1072-1585,
+		FID3_FID3 : 1586-2146,
+		FID4_FID4 : 2147-2744,
+		FID5_FID5 : 2745-3545,
+		FID6_FID6 : 3546-4061,
+		FID7_FID7 : 4062-4833,
+		FID8_FID8 : 4834-5649,
+		FID9_FID9 : 5650-6474,
+		PID0_PID0 : 6475-6820,
+		PID1_PID1 : 6821-7640,
+		PID2_PID2 : 7641-7861,
+		PID3_PID3 : 7862-7944,
+		PID4_PID4 : 7945-8129,
+		PID5_PID5 : 8130-8310,
+		PID6_PID6 : 8311-8678,
+		PID7_PID7 : 8679-8924,
+		PID8_PID8 : 8925-9170,
+		PID9_PID9 : 9171-9387;
+end;
 
 ``` 
 This is easy to do for a few samples but if you have hundreds of individuals it becomes tedious very quickly. To make it a bit easier, use the R code below. **Note:** this code works on a *Phylip* file and not a *NEXUS*, so convert the NEXUS to Phylip using NCLconverter: `NCLconverter infile.nex -erelaxedphylip -ofileout`.
